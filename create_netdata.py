@@ -11,13 +11,14 @@ class Network_1:
         self.flows=[]
         self.graph={}
         self.flow_loads={}  # 字典，key:flow编号，value：每个flow每条链路的分配带宽
+        self.flow_label=[]
         # 构造nodes
         for i in range(node_num):
             self.nodes.append(i)
         # 构造links
         for i in range(len(self.links)):
             if np.random.uniform() >= zero_rate:
-                self.links[i][2]=random.uniform(256,1024)
+                self.links[i][2]=random.uniform(256,512)
         self.links=np.array(self.links)
         # 构造node_data
         for i in range(len(self.nodes)):
@@ -43,6 +44,14 @@ class Network_1:
         for flow in self.flows:
             self.flow_loads[self.flows.index(flow)]=[]
         # print(self.flow_loads)
+        # 构造flow_label
+        self.flow_divide()
+        # 构造flow_label
+        for i in range(len(self.flow_loads)):
+            if(len(self.flow_loads[i])==0):
+                self.flow_label.append(self.node_data[self.flows[i][0]][0])  # 若没有约束的link，flow_label取需求
+            else:
+                self.flow_label.append(min(self.flow_loads[i])) # 取flow_loads中最小的作为label
 
     def create_flow(self, s, d):
         # 输入源和目的节点，输出一条源到目的的路径，使用BFS
@@ -101,9 +110,31 @@ class Network_1:
         # TODO: 给定一个Link约束和其经过的flows,使用max-min fairness得到每个flow的分配并写入字典
         print('max-min fairness:')
         print(link_bd,flow_dem)
+        flows = list(flow_dem.keys())
+        # 若只有一个source需要分配，则直接分配其需要的资源即可
+        if len(flows)==1:
+            self.flow_loads[flows[0]].append(flow_dem[flows[0]])
+        else:
+            # 使用冒泡排序，由小到大排序flows
+            for i in range(1,len(flows)):
+                for j in range(0,len(flows)-i):
+                    if flow_dem[flows[j]]>flow_dem[flows[j+1]]:
+                        flows[j],flows[j+1]=flows[j+1],flows[j]
+            print(flows)  # flow编号列表
 
-        flow_label=[]
-        return flow_label
+            # max-min fairness核心
+            left_num = len(flows)  # 剩余未分配数
+            acc = link_bd / left_num  # 均分累计
+            for flow in flows:
+                if acc<flow_dem[flow]:  # 无法满足需求，平均分配
+                    self.flow_loads[flow].append(acc)
+                else:  # 可以满足，而且可能还有剩
+                    self.flow_loads[flow].append(flow_dem[flow])
+                    left_num-=1
+                    if left_num!=0:
+                        acc+=(acc-flow_dem[flow])/left_num
+            print('max-min：结果:')
+            print(self.flow_loads)
 
 # 保存到文件
     def save_data(self):
@@ -126,6 +157,12 @@ class Network_1:
                 while len(flow) < 5:
                     flow.append(-1)
             writer.writerows(self.flows)
+        # add flow_label
+        with open("network_1/flow_label.csv", "a", newline='') as f_l:
+            writer = csv.writer(f_l)
+            writer.writerow('')
+            for label in self.flow_label:
+                writer.writerow([label])
 
     def print_net(self):
         # print(self.nodes)
@@ -133,6 +170,8 @@ class Network_1:
         print(self.node_data)
         print(self.graph)
         print(self.flows)
+        print("flow_label:")
+        print(self.flow_label)
 
 # original link_data
 link_des=[[0,1,0],[0,2,0],[0,3,0],[1,2,0],[1,7,0],[2,5,0],
@@ -140,6 +179,5 @@ link_des=[[0,1,0],[0,2,0],[0,3,0],[1,2,0],[1,7,0],[2,5,0],
           [6,7,0],[7,10,0],[8,9,0],[8,11,0],[9,12,0],[10,11,0],
           [10,13,0],[11,12,0]]
 net1 = Network_1(14,link_des)
-net1.flow_divide()
 net1.print_net()
-# net1.save_data()
+net1.save_data()
