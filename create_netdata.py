@@ -10,6 +10,7 @@ class Network_1:
         self.node_data=[]
         self.flows=[]
         self.graph={}
+        self.flow_loads={}  # 字典，key:flow编号，value：每个flow每条链路的分配带宽
         # 构造nodes
         for i in range(node_num):
             self.nodes.append(i)
@@ -38,10 +39,13 @@ class Network_1:
         for i in range(len(self.node_data)):
             if(self.node_data[i][0]!=0):
                 self.flows.append(self.create_flow(i,self.node_data[i][1]))
+        # 初始化flow_loads
+        for flow in self.flows:
+            self.flow_loads[self.flows.index(flow)]=[]
+        # print(self.flow_loads)
 
-
-    def create_flow(self,s,d):
-        # TODO: 输入源和目的节点，输出一条源到目的的路径
+    def create_flow(self, s, d):
+        # 输入源和目的节点，输出一条源到目的的路径，使用BFS
         queue = []
         queue.append(s)
         seen = set()
@@ -62,11 +66,46 @@ class Network_1:
         flow.reverse()
         return flow
 
-    def create_label(self):
-        # TODO: 对flows的每一条记录，计算出一个flow_label
+    def flow_divide(self):
+        # 对每个约束非0的link,找到所有需要分配的经过该link的flows,max-min准备
+        for link in self.links:
+            # print('link:')
+            # print(link)
+            flows_index = []  # 需要分配的flow编号
+            if link[2]!=0:  # 有约束条件
+                for flow in self.flows:
+                    if self.is_through(flow,link):
+                        flows_index.append(self.flows.index(flow))
+                # print(flows_index)
+                flow_dem={}
+                for index in flows_index:
+                    flow_dem[index]=self.node_data[self.flows[index][0]][0]
+                if len(flow_dem)!=0:
+                    # print('max-min fairness:')
+                    # print(link,flow_dem)
+                    self.Max_Min(link[2],flow_dem)
+
+
+    @staticmethod
+    def is_through(flow,link):
+        s_d=set(link[:2])
+        for i in range(len(flow)):
+            if set(flow[i:i+2])==s_d:
+                return True
+            if i+2==len(flow):
+                break
+        return False
+
+
+    def Max_Min(self,link_bd,flow_dem):
+        # TODO: 给定一个Link约束和其经过的flows,使用max-min fairness得到每个flow的分配并写入字典
+        print('max-min fairness:')
+        print(link_bd,flow_dem)
+
         flow_label=[]
         return flow_label
-# 保持到文件
+
+# 保存到文件
     def save_data(self):
         # add link_data
         with open("network_1/link_data.csv", "a", newline='') as f_l:
@@ -82,20 +121,25 @@ class Network_1:
         with open("network_1/flow_data.csv","a",newline='') as f_fd:
             writer = csv.writer(f_fd)
             writer.writerow('')
+            # 不足长度5的补-1
+            for flow in self.flows:
+                while len(flow) < 5:
+                    flow.append(-1)
             writer.writerows(self.flows)
 
     def print_net(self):
         # print(self.nodes)
-        # print(self.links)
+        print(self.links)
         print(self.node_data)
         print(self.graph)
         print(self.flows)
 
-# # original link_data
-# link_des=[[0,1,0],[0,2,0],[0,3,0],[1,2,0],[1,7,0],[2,5,0],
-#           [3,4,0],[3,8,0],[4,5,0],[4,6,0],[5,12,0],[5,13,0],
-#           [6,7,0],[7,10,0],[8,9,0],[8,11,0],[9,12,0],[10,11,0],
-#           [10,13,0],[11,12,0]]
-# net1 = Network_1(14,link_des)
-# net1.print_net()
-# #net1.save_data()
+# original link_data
+link_des=[[0,1,0],[0,2,0],[0,3,0],[1,2,0],[1,7,0],[2,5,0],
+          [3,4,0],[3,8,0],[4,5,0],[4,6,0],[5,12,0],[5,13,0],
+          [6,7,0],[7,10,0],[8,9,0],[8,11,0],[9,12,0],[10,11,0],
+          [10,13,0],[11,12,0]]
+net1 = Network_1(14,link_des)
+net1.flow_divide()
+net1.print_net()
+# net1.save_data()
