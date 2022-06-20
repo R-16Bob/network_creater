@@ -3,3 +3,4 @@ flows=[[0, 2.0, 5.0, 12, -1], [1, 2.0, 5.0, 13, -1], [4, 6, -1, -1, -1], [7, 1.0
 flows=[[0,1]]
 def Max_Min():
     # TODO: 给定一个Link和其经过的flows,使用max-min fairness得到每个flow的分配并写入字典
+    return 0;

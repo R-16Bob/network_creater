@@ -3,7 +3,7 @@ import numpy as np
 import random
 
 class Network_1:
-    def __init__(self,node_num,link_des):
+    def __init__(self,node_num,link_des,network_name):
         zero_rate = 0.4
         self.nodes=[]
         self.links=link_des
@@ -12,6 +12,7 @@ class Network_1:
         self.graph={}
         self.flow_loads={}  # 字典，key:flow编号，value：每个flow每条链路的分配带宽
         self.flow_label=[]
+        self.name=network_name
         # 构造nodes
         for i in range(node_num):
             self.nodes.append(i)
@@ -139,17 +140,17 @@ class Network_1:
 # 保存到文件
     def save_data(self):
         # add link_data
-        with open("network_1/link_data.csv", "a", newline='') as f_l:
+        with open(self.name+"/link_data.csv", "a", newline='') as f_l:
             writer = csv.writer(f_l)
             writer.writerow('')
             writer.writerows(self.links.T)
         # add node_data
-        with open("network_1/node_data.csv","a",newline='') as f_n:
+        with open(self.name+"/node_data.csv","a",newline='') as f_n:
             writer = csv.writer(f_n)
             writer.writerow('')
             writer.writerows(self.node_data)
         # add flow_data
-        with open("network_1/flow_data.csv","a",newline='') as f_fd:
+        with open(self.name+"/flow_data.csv","a",newline='') as f_fd:
             writer = csv.writer(f_fd)
             writer.writerow('')
             # 不足长度5的补-1
@@ -158,7 +159,7 @@ class Network_1:
                     flow.append(-1)
             writer.writerows(self.flows)
         # add flow_label
-        with open("network_1/flow_label.csv", "a", newline='') as f_l:
+        with open(self.name+"/flow_label.csv", "a", newline='') as f_l:
             writer = csv.writer(f_l)
             writer.writerow('')
             for label in self.flow_label:
@@ -173,11 +174,12 @@ class Network_1:
         print("flow_label:")
         print(self.flow_label)
 
-# original link_data
-link_des=[[0,1,0],[0,2,0],[0,3,0],[1,2,0],[1,7,0],[2,5,0],
-          [3,4,0],[3,8,0],[4,5,0],[4,6,0],[5,12,0],[5,13,0],
-          [6,7,0],[7,10,0],[8,9,0],[8,11,0],[9,12,0],[10,11,0],
-          [10,13,0],[11,12,0]]
-net1 = Network_1(14,link_des)
-net1.print_net()
-net1.save_data()
+if __name__ == '__main__':
+    # original link_data
+    link_des=[[0,1,0],[0,2,0],[0,3,0],[1,2,0],[1,7,0],[2,5,0],
+              [3,4,0],[3,8,0],[4,5,0],[4,6,0],[5,12,0],[5,13,0],
+              [6,7,0],[7,10,0],[8,9,0],[8,11,0],[9,12,0],[10,11,0],
+              [10,13,0],[11,12,0]]
+    net1 = Network_1(14,link_des,'network_1')
+    net1.print_net()
+    net1.save_data()
