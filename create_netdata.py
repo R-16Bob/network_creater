@@ -13,6 +13,7 @@ class Network_1:
         self.flow_loads={}  # 字典，key:flow编号，value：每个flow每条链路的分配带宽
         self.flow_label=[]
         self.name=network_name
+        self.delay=[]  # transmission delay
         # 构造nodes
         for i in range(node_num):
             self.nodes.append(i)
@@ -45,7 +46,7 @@ class Network_1:
         for flow in self.flows:
             self.flow_loads[self.flows.index(flow)]=[]
         # print(self.flow_loads)
-        # 构造flow_label
+        # 进行分配
         self.flow_divide()
         # 构造flow_label
         for i in range(len(self.flow_loads)):
@@ -137,6 +138,19 @@ class Network_1:
             print('max-min：结果:')
             print(self.flow_loads)
 
+# 计算transmission delay
+    def cal_transmission_delay(self):
+        # (L/R)*link_num
+        flows=self.flows
+        for i in range(len(flows)):
+            link_num = len(flows[i])-1
+            L=self.node_data[flows[i][0]][0]
+            R=self.flow_label[i]
+            # print(L,R,link_num)
+            self.delay.append((L/R)*link_num)
+
+
+
 # 保存到文件
     def save_data(self):
         # add link_data
@@ -159,11 +173,17 @@ class Network_1:
                     flow.append(-1)
             writer.writerows(self.flows)
         # add flow_label
-        with open(self.name+"/flow_label.csv", "a", newline='') as f_l:
-            writer = csv.writer(f_l)
+        with open(self.name+"/flow_label.csv", "a", newline='') as f_fl:
+            writer = csv.writer(f_fl)
             writer.writerow('')
             for label in self.flow_label:
                 writer.writerow([label])
+        # add transmission delay
+        with open(self.name+"/delay.csv", "a", newline='') as f_d:
+            writer = csv.writer(f_d)
+            writer.writerow('')
+            for d in self.delay:
+                writer.writerow([d])
 
     def print_net(self):
         # print(self.nodes)
@@ -173,6 +193,8 @@ class Network_1:
         print(self.flows)
         print("flow_label:")
         print(self.flow_label)
+        print("delay:")
+        print(self.delay)
 
 if __name__ == '__main__':
     # original link_data
@@ -181,5 +203,6 @@ if __name__ == '__main__':
               [6,7,0],[7,10,0],[8,9,0],[8,11,0],[9,12,0],[10,11,0],
               [10,13,0],[11,12,0]]
     net1 = Network_1(14,link_des,'network_1')
+    net1.cal_transmission_delay()
     net1.print_net()
     net1.save_data()

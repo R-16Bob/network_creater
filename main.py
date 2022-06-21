@@ -20,6 +20,7 @@ GEANT2=[[0,1,0],[0,2,0],[1,3,0],[1,6,0],[1,9,0],[2,3,0],[2,4,0],[3,5,0],[3,6,0],
         [19,23,0],[21,22,0],[22,23,0]]
 def create_net1():
     net1 = Network_1(14,NSFNet,'network_1')
+    net1.cal_transmission_delay()
     net1.print_net()
     net1.save_data()
 
@@ -32,7 +33,8 @@ def create_net3():
     net1 = Network_1(24,GEANT2,'network_3')
     net1.print_net()
     net1.save_data()
-for i in range(50):
-    # create_net1()
+
+for i in range(50):  # 需要的数据条数
+    create_net1()
     # create_net2()
-    create_net3()
+    # create_net3()
