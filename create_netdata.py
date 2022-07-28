@@ -14,6 +14,7 @@ class Network_1:
         self.flow_label=[]
         self.name=network_name
         self.delay=[]  # transmission delay
+        self.padding=0  # 将label用-1填充的条数
         # 构造nodes
         for i in range(node_num):
             self.nodes.append(i)
@@ -49,6 +50,7 @@ class Network_1:
         # 进行分配
         self.flow_divide()
         # 构造flow_label
+        # for i in range(len(self.flow_loads)):
         for i in range(len(self.flow_loads)):
             if(len(self.flow_loads[i])==0):
                 self.flow_label.append(self.node_data[self.flows[i][0]][0])  # 若没有约束的link，flow_label取需求
@@ -157,12 +159,14 @@ class Network_1:
         with open(self.name+"/link_data.csv", "a", newline='') as f_l:
             writer = csv.writer(f_l)
             writer.writerow('')
-            writer.writerows(self.links.T)
+            #  writer.writerows(self.links.T)
+            writer.writerows(self.links)  # link不再转置，保持三列
         # add node_data
         with open(self.name+"/node_data.csv","a",newline='') as f_n:
             writer = csv.writer(f_n)
             writer.writerow('')
             writer.writerows(self.node_data)
+
         # add flow_data
         with open(self.name+"/flow_data.csv","a",newline='') as f_fd:
             writer = csv.writer(f_fd)
@@ -172,18 +176,23 @@ class Network_1:
                 while len(flow) < 5:
                     flow.append(-1)
             writer.writerows(self.flows)
+            self.padding = 13-len(self.flows)
+            for i in range(self.padding):
+                writer.writerow([-1,-1,-1,-1,-1])
         # add flow_label
         with open(self.name+"/flow_label.csv", "a", newline='') as f_fl:
             writer = csv.writer(f_fl)
             writer.writerow('')
             for label in self.flow_label:
                 writer.writerow([label])
+            for i in range(self.padding):
+                writer.writerow([-1])
         # add transmission delay
-        with open(self.name+"/delay.csv", "a", newline='') as f_d:
-            writer = csv.writer(f_d)
-            writer.writerow('')
-            for d in self.delay:
-                writer.writerow([d])
+        # with open(self.name+"/delay.csv", "a", newline='') as f_d:
+        #     writer = csv.writer(f_d)
+        #     writer.writerow('')
+        #     for d in self.delay:
+        #         writer.writerow([d])
 
     def print_net(self):
         # print(self.nodes)
@@ -202,7 +211,7 @@ if __name__ == '__main__':
               [3,4,0],[3,8,0],[4,5,0],[4,6,0],[5,12,0],[5,13,0],
               [6,7,0],[7,10,0],[8,9,0],[8,11,0],[9,12,0],[10,11,0],
               [10,13,0],[11,12,0]]
-    net1 = Network_1(14,link_des,'network_1')
-    net1.cal_transmission_delay()
+    net1 = Network_1(14,link_des,'network_4')
+    #net1.cal_transmission_delay()
     net1.print_net()
     net1.save_data()
